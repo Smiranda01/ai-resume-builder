@@ -12,6 +12,12 @@ app.use(express.json());
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
+const resumeRoutes = require('./routes/resumeRoutes');
+app.use('/api/resumes', resumeRoutes);
+
+const templateRoutes = require('./routes/templateRoutes');
+app.use('/api/templates', templateRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('🟢 Backend is running!');

@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, activateAccount, resendActivationEmail } = require('../controllers/authController');
+const authController = require('../controllers/authController');
 
-router.post('/register', register);
-router.post('/login', login);
-router.get('/activate/:token', activateAccount);  
-router.post('/resend-activation', resendActivationEmail); 
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+router.get('/activate/:token', authController.activateAccount);  
+router.post('/resend-activation', authController.resendActivationEmail); 
 
 module.exports = router;
 
