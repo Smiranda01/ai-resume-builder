@@ -18,6 +18,9 @@ app.use('/api/resumes', resumeRoutes);
 const templateRoutes = require('./routes/templateRoutes');
 app.use('/api/templates', templateRoutes);
 
+const feedbackRoutes = require('./routes/feedbackRoutes');
+app.use('/api/feedback', feedbackRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('🟢 Backend is running!');
