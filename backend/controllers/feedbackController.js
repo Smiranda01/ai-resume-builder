@@ -15,14 +15,14 @@ exports.generateFeedback = async (req, res) => {
   
   Based on the user input below, generate a complete, expressive, first-person resume in **strict JSON format**.
   
-  🔐 Rules:
+   Rules:
   - Return ONLY valid JSON (no markdown, no code blocks)
   - Use natural, story-like language — avoid robotic tones
   - Make it feel personal, confident, and authentic
   - Elaborate on strengths, projects, and impact
   - Include more vivid, achievement-focused language
   
-  🧾 JSON Output Format:
+   JSON Output Format:
   {
     "name": "string",
     "title": "string",
@@ -72,9 +72,8 @@ exports.generateFeedback = async (req, res) => {
       res.status(200).json({
         message: 'AI feedback generated and stored',
         feedback_id: result.insertId,
-        resume_json: parsedJson,     // ✅ Usable JSON object
-        raw_string: rawJson,         // 🔍 Still included for reference
-        ai_response_raw: aiResponse  // Optional: full response
+        resume_json: parsedJson,     // Usable JSON object
+        ai_response_raw: aiResponse  // full response
       });
     });
   } catch (error) {

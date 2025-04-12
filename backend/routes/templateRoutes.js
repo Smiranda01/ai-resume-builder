@@ -17,4 +17,7 @@ router.put('/:id', templateController.updateTemplate);
 // DELETE a template
 router.delete('/:id', templateController.deleteTemplate);
 
+// Render AI-enhanced resume into selected template
+router.get('/:id/render', templateController.renderResumeTemplate);
+
 module.exports = router;

@@ -1,4 +1,4 @@
-const resumeModel = require('../models/resumeModel');
+const resumeModel = require('../models/resumeModel.js');
 
 exports.createResume = (req, res) => {
     const { user_id, title, content } = req.body;

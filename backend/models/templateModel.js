@@ -29,3 +29,6 @@ exports.deleteTemplate = (id, callback) => {
   const sql = 'DELETE FROM templates WHERE id = ?';
   db.query(sql, [id], callback);
 };
+
+
+
