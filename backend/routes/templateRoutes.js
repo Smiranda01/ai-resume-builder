@@ -1,23 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const templateController = require('../controllers/templateController');
+const authMiddleware = require('../middleware/authMiddleware');
+const requireAdmin = require('../middleware/requireAdmin');
 
-// GET all templates
 router.get('/', templateController.getAllTemplates);
-
-// GET a specific template by ID
 router.get('/:id', templateController.getTemplateById);
 
-// POST a new template
-router.post('/', templateController.createTemplate);
+// Protect with both middlewares
+router.post('/', authMiddleware, requireAdmin, templateController.createTemplate);
+router.put('/:id', authMiddleware, requireAdmin, templateController.updateTemplate);
+router.delete('/:id', authMiddleware, requireAdmin, templateController.deleteTemplate);
 
-// PUT to update a template
-router.put('/:id', templateController.updateTemplate);
-
-// DELETE a template
-router.delete('/:id', templateController.deleteTemplate);
-
-// Render AI-enhanced resume into selected template
-router.get('/:id/render', templateController.renderResumeTemplate);
+// Stay user-protected only:
+router.get('/:id/render', authMiddleware, templateController.renderResumeTemplate);
 
 module.exports = router;
+

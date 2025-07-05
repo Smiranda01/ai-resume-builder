@@ -4,7 +4,8 @@ const feedbackModel = require('../models/feedbackModel');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 exports.generateFeedback = async (req, res) => {
-  const { user_id, resume_id, input } = req.body;
+  const user_id = req.user.id;
+  const {resume_id, input } = req.body;
 
   if (!user_id || !resume_id || !input) {
     return res.status(400).json({ message: 'Missing required fields (user_id, resume_id, input)' });
