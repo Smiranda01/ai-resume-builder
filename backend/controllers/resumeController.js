@@ -18,11 +18,29 @@ exports.createResume = (req, res) => {
 
 exports.getUserResumes = (req, res) => {
   const userId = req.user.id;
+
   resumeModel.getUserResumes(userId, (err, results) => {
     if (err) return res.status(500).json({ message: 'Database error', error: err });
-    res.status(200).json(results);
+
+    const parsed = results.map(resume => {
+      try {
+        return {
+          ...resume,
+          content: JSON.parse(resume.content),
+        };
+      } catch {
+        return {
+          ...resume,
+          content: null,
+          parseError: true,
+        };
+      }
+    });
+
+    res.status(200).json(parsed);
   });
 };
+
 
 exports.getResumeById = (req, res) => {
   const resumeId = req.params.id;
@@ -38,9 +56,17 @@ exports.getResumeById = (req, res) => {
       return res.status(403).json({ message: 'Unauthorized access to resume' });
     }
 
+    try {
+      resume.content = JSON.parse(resume.content);
+    } catch {
+      resume.content = null;
+      resume.parseError = true;
+    }
+
     res.status(200).json(resume);
   });
 };
+
 
 
 exports.updateResume = (req, res) => {

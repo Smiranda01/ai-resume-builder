@@ -1,5 +1,3 @@
-// src/pages/Dashboard.jsx
-
 import React, { useEffect, useState, useContext } from 'react';
 import { getUserResumes, deleteResume } from '../api/resumes';
 import { AuthContext } from '../context/AuthContext';
@@ -7,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import ResumeCard from '../components/ResumeCard';
 
 const Dashboard = () => {
-  const { authData } = useContext(AuthContext);
+  const { authData, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [resumes, setResumes] = useState([]);
   const [error, setError] = useState('');
@@ -31,11 +29,11 @@ const Dashboard = () => {
   }, [authData, navigate]);
 
   const handleCreateNew = () => {
-    navigate('/templates');  // Redirect to choose a template
+    navigate('/templates');
   };
 
   const handleEdit = (resumeId) => {
-    navigate(`/resume/edit/${resumeId}`);
+    navigate(`/resumes/${resumeId}`);
   };
 
   const handleDelete = async (resumeId) => {
@@ -53,9 +51,22 @@ const Dashboard = () => {
     navigate(`/preview/${resumeId}`);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">My Resumes</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">My Resumes</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+        >
+          Logout
+        </button>
+      </div>
 
       <div className="mb-6">
         <button

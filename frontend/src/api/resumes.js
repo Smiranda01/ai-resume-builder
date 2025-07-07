@@ -1,32 +1,47 @@
 // src/api/resumes.js
 
-const BASE_URL = "http://localhost:5000/api/resumes";  // Backend resumes API
+const BASE_URL = "http://localhost:5000/api/resumes";
 
-// Get all resumes created by a specific user
-export const getUserResumes = async (userId) => {
+// Helper to include auth header
+const authHeaders = () => {
+  const token = JSON.parse(localStorage.getItem("authData"))?.token;
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+// Get all resumes for the logged-in user
+export const getUserResumes = async () => {
   try {
-    const response = await fetch(`${BASE_URL}/user/${userId}`);
+    const response = await fetch(`${BASE_URL}`, {
+      headers: authHeaders(),
+    });
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Failed to fetch resumes");
     }
-    const data = await response.json();
-    return data;  // Array of resumes
+
+    return await response.json(); // Array of resumes
   } catch (error) {
     throw error;
   }
 };
 
-// Get a specific resume by ID (for editing)
+// Get a specific resume by ID (for edit/preview)
 export const getResumeById = async (resumeId) => {
   try {
-    const response = await fetch(`${BASE_URL}/${resumeId}`);
+    const response = await fetch(`${BASE_URL}/${resumeId}`, {
+      headers: authHeaders(),
+    });
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Failed to fetch resume");
     }
-    const data = await response.json();
-    return data;  // Single resume object
+
+    return await response.json(); // Resume object
   } catch (error) {
     throw error;
   }
@@ -37,8 +52,8 @@ export const createResume = async (resumeData) => {
   try {
     const response = await fetch(`${BASE_URL}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(resumeData)
+      headers: authHeaders(),
+      body: JSON.stringify(resumeData),
     });
 
     if (!response.ok) {
@@ -46,8 +61,7 @@ export const createResume = async (resumeData) => {
       throw new Error(errorData.message || "Failed to create resume");
     }
 
-    const data = await response.json();
-    return data;  // Created resume object
+    return await response.json();
   } catch (error) {
     throw error;
   }
@@ -58,8 +72,8 @@ export const updateResume = async (resumeId, updatedData) => {
   try {
     const response = await fetch(`${BASE_URL}/${resumeId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updatedData)
+      headers: authHeaders(),
+      body: JSON.stringify(updatedData),
     });
 
     if (!response.ok) {
@@ -67,8 +81,7 @@ export const updateResume = async (resumeId, updatedData) => {
       throw new Error(errorData.message || "Failed to update resume");
     }
 
-    const data = await response.json();
-    return data;  // Updated resume object
+    return await response.json();
   } catch (error) {
     throw error;
   }
@@ -78,7 +91,8 @@ export const updateResume = async (resumeId, updatedData) => {
 export const deleteResume = async (resumeId) => {
   try {
     const response = await fetch(`${BASE_URL}/${resumeId}`, {
-      method: "DELETE"
+      method: "DELETE",
+      headers: authHeaders(),
     });
 
     if (!response.ok) {
@@ -86,8 +100,7 @@ export const deleteResume = async (resumeId) => {
       throw new Error(errorData.message || "Failed to delete resume");
     }
 
-    const data = await response.json();
-    return data;  // { message: "Resume deleted successfully" }
+    return await response.json();
   } catch (error) {
     throw error;
   }

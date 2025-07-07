@@ -1,19 +1,15 @@
 // src/components/LoginForm.jsx
 
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { login, resendActivationEmail } from '../api/auth';
-import { AuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { resendActivationEmail } from '../api/auth';
 
-const LoginForm = () => {
+const LoginForm = ({ onSubmit }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [activationError, setActivationError] = useState(false);
   const [resendSuccess, setResendSuccess] = useState('');
-  const { setAuthData } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,11 +18,10 @@ const LoginForm = () => {
     setResendSuccess('');
 
     try {
-      const data = await login(email, password);
-      setAuthData(data);  // Save token and user info globally
-      navigate('/dashboard');  // Redirect to dashboard
+      const success = await onSubmit({ email, password });
+      if (!success) setError("Login failed");
     } catch (err) {
-      if (err.message && err.message.toLowerCase().includes('verify your email')) {
+      if (err.message?.toLowerCase().includes('verify your email')) {
         setActivationError(true);
       } else {
         setError(err.message || 'Login failed');
@@ -78,7 +73,6 @@ const LoginForm = () => {
         </button>
       </form>
 
-      {/* Show Resend Activation Option */}
       {activationError && (
         <div className="mt-6 text-center">
           <p className="text-yellow-500 mb-2">Your account is not activated.</p>
@@ -91,9 +85,8 @@ const LoginForm = () => {
         </div>
       )}
 
-      {/* Link to Register Page */}
       <p className="text-sm text-center mt-6">
-        Don't have an account?{" "}
+        Don't have an account?{' '}
         <Link to="/register" className="text-blue-600 hover:underline">
           Register now
         </Link>

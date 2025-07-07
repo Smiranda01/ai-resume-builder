@@ -1,24 +1,21 @@
-// src/context/AuthContext.jsx
-
 import React, { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
+export const AuthContext = createContext(); 
 
-// Create the context
-export const AuthContext = createContext();
-
-// Provider component
 export const AuthProvider = ({ children }) => {
   const [authData, setAuthData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // On page load, try to restore auth data from localStorage
     const storedData = localStorage.getItem('authData');
     if (storedData) {
       setAuthData(JSON.parse(storedData));
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
-    // Whenever authData changes, store it in localStorage
     if (authData) {
       localStorage.setItem('authData', JSON.stringify(authData));
     } else {
@@ -26,13 +23,42 @@ export const AuthProvider = ({ children }) => {
     }
   }, [authData]);
 
-  const logout = () => {
-    setAuthData(null);
+  const login = async ({ email, password }) => {
+  try {
+    const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+    const token = res.data.token;
+
+    // Decode the token
+    const decoded = jwtDecode(token);
+    const user = {
+      id: decoded.id,
+      role: decoded.role,
+      email: email
+    };
+
+    const authPayload = { token, user };
+
+    setAuthData(authPayload);
+    localStorage.setItem('authData', JSON.stringify(authPayload));
+
+    console.log("✅ Logged in successfully:", authPayload); // for debugging
+    return true;
+  } catch (err) {
+    console.error('❌ Login failed:', err);
+    return false;
+  }
   };
 
-  return (
-    <AuthContext.Provider value={{ authData, setAuthData, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const logout = () => {
+  localStorage.removeItem('token');
+  setAuthData(null);
 };
+
+
+  return (
+  <AuthContext.Provider value={{ authData, setAuthData, logout, login, loading }}>
+    {children}
+  </AuthContext.Provider>
+);
+};
+
