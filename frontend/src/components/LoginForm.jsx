@@ -1,7 +1,5 @@
 // src/components/LoginForm.jsx
-
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { resendActivationEmail } from '../api/auth';
 
 const LoginForm = ({ onSubmit }) => {
@@ -19,7 +17,7 @@ const LoginForm = ({ onSubmit }) => {
 
     try {
       const success = await onSubmit({ email, password });
-      if (!success) setError("Login failed");
+      if (!success) setError('Login failed');
     } catch (err) {
       if (err.message?.toLowerCase().includes('verify your email')) {
         setActivationError(true);
@@ -39,59 +37,67 @@ const LoginForm = ({ onSubmit }) => {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 border rounded shadow">
-      <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
+    <form className="bg-white py-8 px-6 shadow rounded-lg sm:px-10 space-y-6" onSubmit={handleSubmit}>
+    {error && <p className="text-sm text-red-600">{error}</p>}
+    {resendSuccess && <p className="text-sm text-green-600">{resendSuccess}</p>}
 
-      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-      {resendSuccess && <p className="text-green-500 text-sm mb-4">{resendSuccess}</p>}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full p-2 border rounded"
-            placeholder="you@example.com"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full p-2 border rounded"
-            placeholder="Your password"
-          />
-        </div>
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-          Login
-        </button>
-      </form>
-
-      {activationError && (
-        <div className="mt-6 text-center">
-          <p className="text-yellow-500 mb-2">Your account is not activated.</p>
-          <button
-            onClick={handleResendActivation}
-            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-          >
-            Resend Activation Email
-          </button>
-        </div>
-      )}
-
-      <p className="text-sm text-center mt-6">
-        Don't have an account?{' '}
-        <Link to="/register" className="text-blue-600 hover:underline">
-          Register now
-        </Link>
-      </p>
+  <div>
+    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+      Email address
+    </label>
+    <div className="mt-1">
+      <input
+        id="email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        placeholder="Enter your email"
+      />
     </div>
+  </div>
+
+  <div>
+    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+      Password
+    </label>
+    <div className="mt-1">
+      <input
+        id="password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        placeholder="Enter your password"
+      />
+    </div>
+  </div>
+
+  {activationError && (
+    <div className="text-sm text-yellow-600">
+      Your account is not activated.{' '}
+      <button
+        type="button"
+        onClick={handleResendActivation}
+        className="text-indigo-600 hover:underline font-medium ml-1"
+      >
+        Resend activation email
+      </button>
+    </div>
+  )}
+
+  <div>
+    <button
+      type="submit"
+      className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-semibold rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    >
+      Sign in
+    </button>
+  </div>
+</form>
+
   );
 };
 

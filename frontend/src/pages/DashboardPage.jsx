@@ -1,14 +1,18 @@
-import React, { useEffect, useState, useContext } from 'react';
+// src/pages/DashboardPage.jsx
+import React from 'react';
+import ResumeCard from '../components/ResumeCard';
+import DashboardLayout from '../components/DashboardLayout';
+import { useContext, useEffect, useState } from 'react';
 import { getUserResumes, deleteResume } from '../api/resumes';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import ResumeCard from '../components/ResumeCard';
 
-const Dashboard = () => {
+const DashboardPage = () => {
   const { authData, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [resumes, setResumes] = useState([]);
   const [error, setError] = useState('');
+ console.log("authData", authData);
 
   useEffect(() => {
     if (!authData?.user) {
@@ -28,74 +32,87 @@ const Dashboard = () => {
     fetchResumes();
   }, [authData, navigate]);
 
-  const handleCreateNew = () => {
-    navigate('/templates');
-  };
-
-  const handleEdit = (resumeId) => {
-    navigate(`/resumes/${resumeId}`);
-  };
-
-  const handleDelete = async (resumeId) => {
-    if (window.confirm('Are you sure you want to delete this resume?')) {
-      try {
-        await deleteResume(resumeId);
-        setResumes(resumes.filter(r => r.id !== resumeId));
-      } catch (err) {
-        alert(err.message || 'Failed to delete resume');
-      }
-    }
-  };
-
-  const handlePreview = (resumeId) => {
-    navigate(`/preview/${resumeId}`);
-  };
-
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const handleEdit = (id) => navigate(`/resumes/${id}`);
+  const handlePreview = (id) => navigate(`/preview/${id}`);
+  const handleDelete = async (id) => {
+    if (window.confirm('Delete this resume?')) {
+      await deleteResume(id);
+      setResumes((prev) => prev.filter(r => r.id !== id));
+    }
+  };
+
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">My Resumes</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-        >
-          Logout
-        </button>
-      </div>
+    <DashboardLayout>
+      {(activeSection) => {
+        if (activeSection === 'dashboard') {
+          return (
+            <>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-purple-700">
+                  Welcome, {authData?.user?.name}!
+                </h2>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 text-sm rounded border border-purple-300 text-purple-700 hover:bg-purple-100 transition"
+                >
+                  Logout
+                </button>
+              </div>
 
-      <div className="mb-6">
-        <button
-          onClick={handleCreateNew}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
-          Create New Resume
-        </button>
-      </div>
+              <div className="space-y-6">
+                {resumes.length === 0 ? (
+                  <p className="text-gray-600">No resumes yet. Create one!</p>
+                ) : (
+                  resumes.map((resume) => (
+                    <ResumeCard
+                      key={resume.id}
+                      resume={resume}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onPreview={handlePreview}
+                    />
+                  ))
+                )}
+              </div>
+            </>
+          );
+        }
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+        if (activeSection === 'create') {
+          return (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-purple-700">Create New Resume</h2>
+              <p className="text-gray-600">Choose a template to begin your resume:</p>
+              <button
+                onClick={() => navigate('/templates')}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md shadow-sm transition"
+              >
+                Browse Templates
+              </button>
+            </div>
+          );
+        }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {resumes.length === 0 ? (
-          <p className="text-gray-600">No resumes found. Create your first one!</p>
-        ) : (
-          resumes.map(resume => (
-            <ResumeCard
-              key={resume.id}
-              resume={resume}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onPreview={handlePreview}
-            />
-          ))
-        )}
-      </div>
-    </div>
-  );
+        if (activeSection === 'profile') {
+          return (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold">Profile Settings</h2>
+              <p className="text-gray-600">User email: {authData?.user?.email}</p>
+              {/* Add more fields later */}
+            </div>
+          );
+        }
+
+        return null;
+      }}
+    </DashboardLayout>
+);
+
 };
 
-export default Dashboard;
+export default DashboardPage;

@@ -1,28 +1,39 @@
 // src/api/feedback.js
 
-const BASE_URL = "http://localhost:5000/api/feedback";  // Backend feedback API
+const BASE_URL = "http://localhost:5000/api/feedback";  
 
-// Generate AI-powered feedback for a resume
-export const generateFeedback = async (userId, resumeId, inputData) => {
+
+// Shared auth header helper
+const authHeaders = () => {
+  const token = JSON.parse(localStorage.getItem("authData"))?.token;
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+export const generateFeedback = async (resume_id, input) => {
+  const payload = { resume_id, input };
+  console.log("[Sending to OpenAI]", payload);
+
   try {
     const response = await fetch(`${BASE_URL}/generate`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id: userId,
-        resume_id: resumeId,
-        input: inputData
-      })
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
     });
 
+    const data = await response.json();
+
+    console.log("[Response from OpenAI]", data);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to generate AI feedback");
+      throw new Error(data.message || "Failed to generate feedback");
     }
 
-    const data = await response.json();
-    return data;  // { feedback_id, resume_json, ai_response_raw }
+    return data;
   } catch (error) {
+    console.error("[Feedback API Error]", error.message);
     throw error;
   }
 };

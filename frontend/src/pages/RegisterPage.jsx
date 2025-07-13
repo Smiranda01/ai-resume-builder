@@ -27,12 +27,20 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="register-page">
-      <h2>Register</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {info && <p style={{ color: 'green' }}>{info}</p>}
+    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Register</h2>
+    {error && <p className="text-center text-sm text-red-600 mt-2">{error}</p>}
+    {info && <p className="text-center text-sm text-green-600 mt-2">{info}</p>}
+  </div>
+
+  <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="bg-white py-8 px-6 shadow rounded-lg sm:px-10">
       <RegisterForm onSubmit={handleRegister} />
     </div>
+  </div>
+</div>
+
   );
 };
 

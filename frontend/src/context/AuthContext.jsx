@@ -27,27 +27,21 @@ export const AuthProvider = ({ children }) => {
   try {
     const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
     const token = res.data.token;
+    const user = res.data.user;
 
-    // Decode the token
-    const decoded = jwtDecode(token);
-    const user = {
-      id: decoded.id,
-      role: decoded.role,
-      email: email
-    };
 
     const authPayload = { token, user };
-
     setAuthData(authPayload);
     localStorage.setItem('authData', JSON.stringify(authPayload));
 
-    console.log("✅ Logged in successfully:", authPayload); // for debugging
+    console.log("✅ Logged in successfully:", authPayload);
     return true;
   } catch (err) {
     console.error('❌ Login failed:', err);
     return false;
   }
-  };
+};
+
 
   const logout = () => {
   localStorage.removeItem('token');

@@ -17,7 +17,7 @@ export const login = async (email, password) => {
     }
 
     const data = await response.json();
-    return data;  // { token, user }
+    return data;  
   } catch (error) {
     throw error;
   }
@@ -31,7 +31,7 @@ export const register = async (name, email, password) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password })  // Correct JSON format!
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Registration failed");

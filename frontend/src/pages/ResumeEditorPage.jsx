@@ -1,12 +1,13 @@
-// src/pages/ResumeEditorPage.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getResumeById, updateResume } from '../api/resumes';
 import ResumeForm from '../components/ResumeForm';
+import { AuthContext } from '../context/AuthContext';
 
 const ResumeEditorPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { authData } = useContext(AuthContext);
   const [resume, setResume] = useState(null);
   const [error, setError] = useState('');
 
@@ -14,7 +15,7 @@ const ResumeEditorPage = () => {
     const loadResume = async () => {
       try {
         const data = await getResumeById(id);
-        setResume(data); // content is already parsed by backend
+        setResume(data);
       } catch (err) {
         setError(err.message);
       }
@@ -25,13 +26,11 @@ const ResumeEditorPage = () => {
 
   const handleSubmit = async (formData) => {
     try {
-      const { title, ...rest } = formData; // separate title
-
+      const { title, ...rest } = formData;
       await updateResume(id, {
-        
-        title, // top-level field
+        title,
         template_id: resume.template_id || 1,
-        content: JSON.stringify(rest), // everything else
+        content: JSON.stringify(rest),
       });
 
       navigate('/dashboard');
@@ -49,7 +48,7 @@ const ResumeEditorPage = () => {
       <ResumeForm
         initialData={{
           ...resume.content,
-          title: resume.title // inject title for consistent form structure
+          title: resume.title
         }}
         onSubmit={handleSubmit}
       />
