@@ -1,7 +1,7 @@
 const templateModel = require('../models/templateModel');
 const Feedback = require('../models/feedbackModel');
 
-// GET all templates
+// Get all templates
 exports.getAllTemplates = (req, res) => {
   templateModel.getAllTemplates((err, results) => {
     if (err) return res.status(500).json({ message: 'Database error', error: err });
@@ -9,7 +9,7 @@ exports.getAllTemplates = (req, res) => {
   });
 };
 
-// GET a template by ID
+// Get a single template by ID
 exports.getTemplateById = (req, res) => {
   const id = req.params.id;
   templateModel.getTemplateById(id, (err, results) => {
@@ -19,9 +19,10 @@ exports.getTemplateById = (req, res) => {
   });
 };
 
-// POST - create a new template
+// Create a new template
 exports.createTemplate = (req, res) => {
   const { name, description, html_code } = req.body;
+
   if (!name || !html_code) {
     return res.status(400).json({ message: 'Name and HTML code are required' });
   }
@@ -32,7 +33,7 @@ exports.createTemplate = (req, res) => {
   });
 };
 
-// PUT - update template
+// Update an existing template
 exports.updateTemplate = (req, res) => {
   const id = req.params.id;
   const { name, description, html_code } = req.body;
@@ -43,7 +44,7 @@ exports.updateTemplate = (req, res) => {
   });
 };
 
-// DELETE - delete a template
+// Delete a template
 exports.deleteTemplate = (req, res) => {
   const id = req.params.id;
   templateModel.deleteTemplate(id, (err) => {
@@ -52,7 +53,7 @@ exports.deleteTemplate = (req, res) => {
   });
 };
 
-
+// Render resume using the template and latest AI feedback
 exports.renderResumeTemplate = async (req, res) => {
   const templateId = req.params.id;
   const resumeId = req.query.resumeId;
@@ -61,87 +62,60 @@ exports.renderResumeTemplate = async (req, res) => {
     const template = await new Promise((resolve, reject) => {
       templateModel.getTemplateById(templateId, (err, result) => {
         if (err) reject(err);
-        else if (result.length === 0) resolve(null);  // No template found
-        else resolve(result[0]);
+        else resolve(result[0] || null);
       });
     });
-    
+
     const feedback = await new Promise((resolve, reject) => {
       Feedback.getLatestByResumeId(resumeId, (err, result) => {
         if (err) reject(err);
-        else resolve(result);  // your getLatestByResumeId already returns null if not found
+        else resolve(result || null);
       });
     });
-    
-    if (!template) {
-      return res.status(404).json({ message: 'Template not found' });
-    }
-    
-    if (!feedback) {
-      return res.status(404).json({ message: 'Feedback not found' });
-    }
 
-    let feedbackJson;
+    if (!template) return res.status(404).json({ message: 'Template not found' });
+    if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
+
+    let data;
     try {
-      feedbackJson = JSON.parse(feedback.message);
+      data = JSON.parse(feedback.message);
     } catch (err) {
-      return res.status(500).json({ message: 'Failed to parse feedback JSON', error: err.message });
+      return res.status(500).json({ message: 'Invalid JSON in feedback', error: err.message });
     }
 
-    let renderedHTML = template.html_code;
+    // Replace placeholders with actual values
+    let output = template.html_code
+      .replace('{{name}}', data.name || '')
+      .replace('{{title}}', data.title || '')
+      .replace('{{summary}}', data.summary || '');
 
-    // Simple keys
-    renderedHTML = renderedHTML.replace('{{name}}', feedbackJson.name || '');
-    renderedHTML = renderedHTML.replace('{{title}}', feedbackJson.title || '');
-    renderedHTML = renderedHTML.replace('{{summary}}', feedbackJson.summary || '');
-
-    // Handle Experience Loop
-    let experienceHTML = '';
-    feedbackJson.experience?.forEach(exp => {
-      experienceHTML += `
-        <div>
-          <h3>${exp.role} at ${exp.company}</h3>
-          <p>${exp.description}</p>
-        </div>
-      `;
+    let experience = '';
+    data.experience?.forEach(exp => {
+      experience += `<div><h3>${exp.role} at ${exp.company}</h3><p>${exp.description}</p></div>`;
     });
-    renderedHTML = renderedHTML.replace('{{experience}}', experienceHTML);
+    output = output.replace('{{experience}}', experience);
 
-    // Handle Education Loop
-    let educationHTML = '';
-    feedbackJson.education?.forEach(edu => {
-      educationHTML += `
-        <div>
-          <strong>${edu.degree}</strong> - ${edu.institution} (${edu.year})
-        </div>
-      `;
+    let education = '';
+    data.education?.forEach(edu => {
+      education += `<div><strong>${edu.degree}</strong> - ${edu.institution} (${edu.year})</div>`;
     });
-    renderedHTML = renderedHTML.replace('{{education}}', educationHTML);
+    output = output.replace('{{education}}', education);
 
-    // Handle Skills List
-    let skillsHTML = '';
-    feedbackJson.skills?.forEach(skill => {
-      skillsHTML += `<span>${skill}</span> `;
+    let skills = '';
+    data.skills?.forEach(skill => {
+      skills += `<span>${skill}</span> `;
     });
-    renderedHTML = renderedHTML.replace('{{skills}}', skillsHTML);
+    output = output.replace('{{skills}}', skills);
 
-    // Handle Projects
-    let projectsHTML = '';
-    feedbackJson.projects?.forEach(proj => {
-      projectsHTML += `
-        <div>
-          <strong>${proj.name}</strong>
-          <p>${proj.description}</p>
-        </div>
-      `;
+    let projects = '';
+    data.projects?.forEach(proj => {
+      projects += `<div><strong>${proj.name}</strong><p>${proj.description}</p></div>`;
     });
-    renderedHTML = renderedHTML.replace('{{projects}}', projectsHTML);
+    output = output.replace('{{projects}}', projects);
 
-    res.status(200).send(renderedHTML);
-
+    res.status(200).send(output);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };
-

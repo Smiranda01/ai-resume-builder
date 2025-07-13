@@ -4,28 +4,30 @@ const { findUserByEmail, createUser } = require('../models/userModel');
 const { sendActivationEmail } = require('../utils/emailService');
 const db = require('../config/db');
 
-
+// Registers a new user and sends a confirmation email
 exports.register = (req, res) => {
   const { name, email, password } = req.body;
 
+  // Check if the user already exists
   findUserByEmail(email, (err, results) => {
     if (err) return res.status(500).json({ message: 'Server error', error: err });
     if (results.length > 0) return res.status(400).json({ message: 'User already exists' });
 
+    // Hash the password before storing it
     const hashedPassword = bcrypt.hashSync(password, 8);
 
-    // 1. Create user first
+    // Save user in the database
     createUser(name, email, hashedPassword, async (err, result) => {
       if (err) return res.status(500).json({ message: 'Failed to create user', error: err });
 
-      // 2. Create token for email confirmation
+      // Generate token for email verification
       const token = jwt.sign(
         { email },
         process.env.JWT_ACTIVATE_SECRET,
         { expiresIn: '10m' }
       );
 
-      // 3. Send confirmation email
+      // Send activation email
       try {
         await sendActivationEmail(email, token);
         res.status(201).json({ message: 'User registered. Confirmation email sent.' });
@@ -40,89 +42,93 @@ exports.register = (req, res) => {
   });
 };
 
+// Resends the email verification link
 exports.resendActivationEmail = (req, res) => {
-    const { email } = req.body;
-  
-    if (!email) return res.status(400).json({ message: 'Email is required' });
-  
-    findUserByEmail(email, (err, results) => {
-      if (err) return res.status(500).json({ message: 'Server error' });
-  
-      if (results.length === 0) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-  
-      const user = results[0];
-      if (user.verified) {
-        return res.status(400).json({ message: 'Account is already verified' });
-      }
-  
-      const token = jwt.sign(
-        { name: user.name, email: user.email, password: user.password },
-        process.env.JWT_ACTIVATE_SECRET,
-        { expiresIn: '10m' }
-      );
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: 'Email is required' });
 
-      console.log("Sending email to:", user.email);
-  
-      sendActivationEmail(user.email, token)
-        .then(() => {
-          res.status(200).json({ message: 'Activation email resent' });
-        })
-        .catch((error) => {
-          console.error('Resend email failed:', error);
-          res.status(500).json({ message: 'Failed to resend activation email' });
-        });
-    });
-  };
+  // Look for user in DB
+  findUserByEmail(email, (err, results) => {
+    if (err) return res.status(500).json({ message: 'Server error' });
+    if (results.length === 0) return res.status(404).json({ message: 'User not found' });
 
-  
-exports.activateAccount = (req, res) => {
-    const token = req.params.token;
-  
-    jwt.verify(token, process.env.JWT_ACTIVATE_SECRET, (err, decoded) => {
-      if (err) return res.status(400).json({ message: 'Invalid or expired token' });
-  
-      const { email } = decoded;
-  
-      // Now update the user as verified
-      const sql = 'UPDATE users SET verified = 1 WHERE email = ?';
-      db.query(sql, [email], (err, result) => {
-        if (err) return res.status(500).json({ message: 'Failed to activate account' });
-  
-        if (result.affectedRows === 0) {
-          return res.status(404).json({ message: 'User not found' });
-        }
-  
-        res.status(200).json({ message: 'Account successfully activated!' });
+    const user = results[0];
+    if (user.verified) return res.status(400).json({ message: 'Account is already verified' });
+
+    // Generate new verification token
+    const token = jwt.sign(
+      { name: user.name, email: user.email, password: user.password },
+      process.env.JWT_ACTIVATE_SECRET,
+      { expiresIn: '10m' }
+    );
+
+    // Send email
+    sendActivationEmail(user.email, token)
+      .then(() => {
+        res.status(200).json({ message: 'Activation email resent' });
+      })
+      .catch((error) => {
+        console.error('Resend email failed:', error);
+        res.status(500).json({ message: 'Failed to resend activation email' });
       });
-    });
-  };
+  });
+};
 
-  exports.login = (req, res) => {
-    const { email, password } = req.body;
-  
-    findUserByEmail(email, (err, results) => {
-      if (err) return res.status(500).json({ message: 'Server error', error: err });
-      if (results.length === 0) return res.status(404).json({ message: 'User not found' });
-  
-      const user = results[0];
-  
-      if (!user.verified) {
-        return res.status(401).json({ message: 'Please verify your email before logging in.' });
-      }
-  
-      const isPasswordValid = bcrypt.compareSync(password, user.password);
-      if (!isPasswordValid) return res.status(401).json({ message: 'Invalid password' });
-  
-      const token = jwt.sign(
-        { id: user.id, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: '2h' }
-      );
-  
-      res.status(200).json({ token });
+// Verifies account when user clicks the link in the email
+exports.activateAccount = (req, res) => {
+  const token = req.params.token;
+
+  // Verify token and extract user info
+  jwt.verify(token, process.env.JWT_ACTIVATE_SECRET, (err, decoded) => {
+    if (err) return res.status(400).json({ message: 'Invalid or expired token' });
+
+    const { email } = decoded;
+
+    // Mark user as verified in the database
+    const sql = 'UPDATE users SET verified = 1 WHERE email = ?';
+    db.query(sql, [email], (err, result) => {
+      if (err) return res.status(500).json({ message: 'Failed to activate account' });
+      if (result.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
+
+      res.status(200).json({ message: 'Account successfully activated!' });
     });
-  };
-  
-  
+  });
+};
+
+// Authenticates the user and returns a JWT
+exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  findUserByEmail(email, (err, results) => {
+    if (err) return res.status(500).json({ message: 'Server error', error: err });
+    if (results.length === 0) return res.status(404).json({ message: 'User not found' });
+
+    const user = results[0];
+
+    if (!user.verified) {
+      return res.status(401).json({ message: 'Please verify your email before logging in.' });
+    }
+
+    // Check if password matches
+    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    if (!isPasswordValid) return res.status(401).json({ message: 'Invalid password' });
+
+    // Generate access token
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '2h' }
+    );
+
+    // Return user data and token
+    res.status(200).json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      }
+    });
+  });
+};

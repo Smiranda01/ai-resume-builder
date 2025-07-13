@@ -1,27 +1,27 @@
 const resumeModel = require('../models/resumeModel.js');
 
+// Create a new resume for the authenticated user
 exports.createResume = (req, res) => {
-    const userid = req.user.id;
-    const { title, content } = req.body;
-    const template_id = req.body.template_id || 1; 
+  const userid = req.user.id;
+  const { title, content } = req.body;
+  const template_id = req.body.template_id || 1;
 
-  
-    // Stringify the JSON content
-    const stringifiedContent = JSON.stringify(content);
-  
-    resumeModel.createResume(userid, template_id, title, stringifiedContent, (err, result) => {
-      if (err) return res.status(500).json({ message: 'Database error', error: err });
-      res.status(201).json({ message: 'Resume created', resumeId: result.insertId });
-    });
-  };
-  
+  const stringifiedContent = JSON.stringify(content);
 
+  resumeModel.createResume(userid, template_id, title, stringifiedContent, (err, result) => {
+    if (err) return res.status(500).json({ message: 'Database error', error: err });
+    res.status(201).json({ message: 'Resume created', resumeId: result.insertId });
+  });
+};
+
+// Get all resumes belonging to the logged-in user
 exports.getUserResumes = (req, res) => {
   const userId = req.user.id;
 
   resumeModel.getUserResumes(userId, (err, results) => {
     if (err) return res.status(500).json({ message: 'Database error', error: err });
 
+    // Parse resume content from JSON
     const parsed = results.map(resume => {
       try {
         return {
@@ -41,7 +41,7 @@ exports.getUserResumes = (req, res) => {
   });
 };
 
-
+// Get a specific resume by its ID
 exports.getResumeById = (req, res) => {
   const resumeId = req.params.id;
   const userId = req.user.id;
@@ -51,10 +51,7 @@ exports.getResumeById = (req, res) => {
 
     const resume = results[0];
     if (!resume) return res.status(404).json({ message: 'Resume not found' });
-
-    if (resume.user_id !== userId) {
-      return res.status(403).json({ message: 'Unauthorized access to resume' });
-    }
+    if (resume.user_id !== userId) return res.status(403).json({ message: 'Unauthorized access to resume' });
 
     try {
       resume.content = JSON.parse(resume.content);
@@ -67,8 +64,7 @@ exports.getResumeById = (req, res) => {
   });
 };
 
-
-
+// Update an existing resume after validating ownership
 exports.updateResume = (req, res) => {
   const resumeId = req.params.id;
   const { template_id, title, content } = req.body;
@@ -81,47 +77,35 @@ exports.updateResume = (req, res) => {
   const safeTemplateId = template_id || 1;
   const stringifiedContent = JSON.stringify(content);
 
-  // First, verify ownership
   resumeModel.getResumeById(resumeId, (err, results) => {
     if (err) return res.status(500).json({ message: 'Database error', error: err });
+
     const resume = results[0];
     if (!resume) return res.status(404).json({ message: 'Resume not found' });
+    if (resume.user_id !== userId) return res.status(403).json({ message: 'Unauthorized: You do not own this resume' });
 
-    if (resume.user_id !== userId) {
-      return res.status(403).json({ message: 'Unauthorized: You do not own this resume' });
-    }
-
-    // Proceed to update
     resumeModel.updateResume(resumeId, safeTemplateId, title, stringifiedContent, (err) => {
-      if (err) {
-        return res.status(500).json({ message: 'Database error', error: err });
-      }
+      if (err) return res.status(500).json({ message: 'Database error', error: err });
       res.status(200).json({ message: 'Resume updated successfully' });
     });
   });
 };
 
-  
-
+// Delete a resume after verifying ownership
 exports.deleteResume = (req, res) => {
   const resumeId = req.params.id;
   const userId = req.user.id;
 
-  // Verify the resume exists and belongs to the user
   resumeModel.getResumeById(resumeId, (err, results) => {
     if (err) return res.status(500).json({ message: 'Database error', error: err });
+
     const resume = results[0];
     if (!resume) return res.status(404).json({ message: 'Resume not found' });
+    if (resume.user_id !== userId) return res.status(403).json({ message: 'Unauthorized: You do not own this resume' });
 
-    if (resume.user_id !== userId) {
-      return res.status(403).json({ message: 'Unauthorized: You do not own this resume' });
-    }
-
-    // Proceed to delete
     resumeModel.deleteResume(resumeId, (err) => {
       if (err) return res.status(500).json({ message: 'Database error', error: err });
       res.status(200).json({ message: 'Resume deleted' });
     });
   });
 };
-
