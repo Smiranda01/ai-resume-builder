@@ -1,8 +1,9 @@
 // src/api/resumes.js
 
+// Base URL for all resume-related API endpoints
 const BASE_URL = "http://localhost:5000/api/resumes";
 
-// Helper to include auth header
+// Helper function to retrieve the user's JWT token from localStorage and build the auth headers
 const authHeaders = () => {
   const token = JSON.parse(localStorage.getItem("authData"))?.token;
   return {
@@ -11,7 +12,8 @@ const authHeaders = () => {
   };
 };
 
-// Get all resumes for the logged-in user
+
+// Fetches all resumes belonging to the currently logged-in user.
 export const getUserResumes = async () => {
   try {
     const response = await fetch(`${BASE_URL}`, {
@@ -23,13 +25,13 @@ export const getUserResumes = async () => {
       throw new Error(errorData.message || "Failed to fetch resumes");
     }
 
-    return await response.json(); // Array of resumes
+    return await response.json();
   } catch (error) {
     throw error;
   }
 };
 
-// Get a specific resume by ID (for edit/preview)
+// Fetches a specific resume by its ID (used for edit/preview)
 export const getResumeById = async (resumeId) => {
   try {
     const response = await fetch(`${BASE_URL}/${resumeId}`, {
@@ -41,13 +43,13 @@ export const getResumeById = async (resumeId) => {
       throw new Error(errorData.message || "Failed to fetch resume");
     }
 
-    return await response.json(); // Resume object
+    return await response.json();
   } catch (error) {
     throw error;
   }
 };
 
-// Create a new resume
+// Creates a new resume and stores it in the database.
 export const createResume = async (resumeData) => {
   try {
     const response = await fetch(`${BASE_URL}`, {
@@ -67,7 +69,8 @@ export const createResume = async (resumeData) => {
   }
 };
 
-// Update an existing resume
+//Updates an existing resume.
+
 export const updateResume = async (resumeId, updatedData) => {
   try {
     const response = await fetch(`${BASE_URL}/${resumeId}`, {
@@ -87,7 +90,8 @@ export const updateResume = async (resumeId, updatedData) => {
   }
 };
 
-// Delete a resume
+//Deletes a resume by its ID.
+
 export const deleteResume = async (resumeId) => {
   try {
     const response = await fetch(`${BASE_URL}/${resumeId}`, {

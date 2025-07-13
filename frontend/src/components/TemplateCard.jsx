@@ -1,15 +1,28 @@
 import React from 'react';
 
+// TemplateCard component displays a single resume template with actions
+// Props:
+// - template: the template data object
+// - onSelect: function to call when user selects the template
+// - onEdit: function to call when admin clicks "Edit"
+// - onDelete: function to call when admin clicks "Delete"
+// - isAdmin: boolean to show/hide admin controls
 const TemplateCard = ({ template, onSelect, onEdit, onDelete, isAdmin }) => {
   return (
     <div className="flex flex-col justify-between h-full border rounded-xl p-6 shadow bg-white hover:shadow-md transition">
-      {/* Template Info */}
+      
+      {/* Main content: name and description */}
       <div className="flex-grow">
-        <h3 className="text-xl font-semibold text-purple-800 mb-2">{template.name}</h3>
-        <p className="text-gray-600 text-sm">{template.description || "No description provided."}</p>
+        <h3 className="text-xl font-semibold text-purple-800 mb-2">
+          {template.name}
+        </h3>
+
+        <p className="text-gray-600 text-sm">
+          {template.description || "No description provided."}
+        </p>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action buttons for both users and admins */}
       <div className="flex flex-wrap gap-2 mt-6">
         <button
           onClick={() => onSelect(template.id)}
@@ -18,6 +31,7 @@ const TemplateCard = ({ template, onSelect, onEdit, onDelete, isAdmin }) => {
           Use Template
         </button>
 
+        {/* Only show edit/delete buttons if user is an admin */}
         {isAdmin && (
           <>
             <button

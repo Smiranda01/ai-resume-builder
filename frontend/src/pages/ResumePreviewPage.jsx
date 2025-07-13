@@ -1,3 +1,5 @@
+// src/pages/ResumePreviewPage.jsx
+
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getResumeById } from '../api/resumes';
@@ -5,16 +7,26 @@ import { generateFeedback } from '../api/feedback';
 import { AuthContext } from '../context/AuthContext';
 
 const ResumePreviewPage = () => {
+  // Get resume ID from route
   const { id } = useParams();
+
+  // Used to redirect to AI preview page
   const navigate = useNavigate();
+
+  // Access current user auth info (optional here)
   const { authData } = useContext(AuthContext);
+
+  // State for resume data and possible errors
   const [resume, setResume] = useState(null);
   const [error, setError] = useState('');
 
+  // Fetch resume details on mount
   useEffect(() => {
     const fetchResume = async () => {
       try {
         const data = await getResumeById(id);
+
+        // If resume content is stored as string, parse it to object
         const content = typeof data.content === 'string' ? JSON.parse(data.content) : data.content;
         setResume({ ...data, content });
       } catch (err) {
@@ -25,9 +37,12 @@ const ResumePreviewPage = () => {
     fetchResume();
   }, [id]);
 
+  // Handle "Enhance with AI" button click
   const handleEnhance = async () => {
     try {
       const response = await generateFeedback(resume.id, resume.content);
+
+      // Navigate to AI preview page with both original and enhanced content
       navigate(`/ai-preview/${resume.id}`, {
         state: {
           aiContent: response.resume_json,
@@ -39,6 +54,7 @@ const ResumePreviewPage = () => {
     }
   };
 
+  // Error or loading states
   if (error) return <p className="text-red-600 text-center">{error}</p>;
   if (!resume) return <p className="text-center">Loading resume...</p>;
 
@@ -46,6 +62,7 @@ const ResumePreviewPage = () => {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
+      {/* AI enhancement trigger */}
       <button
         onClick={handleEnhance}
         className="mb-6 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
@@ -53,6 +70,7 @@ const ResumePreviewPage = () => {
         ✨ Enhance with AI
       </button>
 
+      {/* Resume content display */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 space-y-6 text-gray-800">
         <header>
           <h1 className="text-3xl font-bold text-purple-700">{content.name || 'No Name Provided'}</h1>

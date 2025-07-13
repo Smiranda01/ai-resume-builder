@@ -1,35 +1,45 @@
 // src/pages/AIReviewPage.jsx
+
 import React from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { updateResume } from '../api/resumes';
 
 const AIReviewPage = () => {
+  // Get resume ID from route params
   const { id } = useParams();
+
+  // Navigation and location hooks from React Router
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Destructure AI-generated and original resume content passed via route state
   const { aiContent, original } = location.state || {};
 
+  // Show error message if page is accessed directly without state
   if (!aiContent || !original) {
     return <p className="text-center text-red-600">Missing AI feedback or original resume data.</p>;
   }
 
+  // Apply AI changes to the resume and update via API
   const handleApply = async () => {
     try {
       await updateResume(id, {
         title: aiContent.title || 'Untitled Resume',
-        content: aiContent
+        content: aiContent,
       });
       alert('AI suggestions applied successfully!');
-      navigate('/dashboard');
+      navigate('/dashboard'); // Redirect to dashboard after success
     } catch (err) {
       alert('Failed to apply suggestions: ' + err.message);
     }
   };
-  
-  const handleDiscard = () => {
-  navigate(`/preview/${resume.id}`); // Go back to regular preview
-    };
 
+  // Discard changes and go back one page
+  const handleDiscard = () => {
+    navigate(-1);
+  };
+
+  // Renders a formatted resume preview section from a content object
   const renderSection = (content) => (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">{content.name}</h1>
@@ -80,17 +90,20 @@ const AIReviewPage = () => {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="flex flex-col lg:flex-row gap-8">
+        {/* Original resume column */}
         <div className="w-full lg:w-1/2 bg-white rounded shadow p-6">
           <h2 className="text-xl font-bold mb-4">Original Resume</h2>
           {renderSection(original)}
         </div>
 
+        {/* AI-enhanced resume column */}
         <div className="w-full lg:w-1/2 bg-white rounded shadow p-6">
           <h2 className="text-xl font-bold mb-4">AI-Enhanced Resume</h2>
           {renderSection(aiContent)}
         </div>
       </div>
 
+      {/* Action buttons */}
       <div className="mt-8 flex flex-wrap gap-4 justify-center">
         <button
           onClick={handleApply}
@@ -99,7 +112,7 @@ const AIReviewPage = () => {
           ✅ Apply Suggestions
         </button>
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleDiscard}
           className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
         >
           🚫 Discard

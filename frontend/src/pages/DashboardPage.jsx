@@ -1,25 +1,32 @@
 // src/pages/DashboardPage.jsx
-import React from 'react';
-import ResumeCard from '../components/ResumeCard';
-import DashboardLayout from '../components/DashboardLayout';
-import { useContext, useEffect, useState } from 'react';
-import { getUserResumes, deleteResume } from '../api/resumes';
-import { AuthContext } from '../context/AuthContext';
+
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import ResumeCard from '../components/ResumeCard';
+import DashboardLayout from '../components/DashboardLayout';
+import { getUserResumes, deleteResume } from '../api/resumes';
+import { AuthContext } from '../context/AuthContext';
+
 const DashboardPage = () => {
+  // Access authentication data and logout function
   const { authData, logout } = useContext(AuthContext);
+
+  // Router navigation hook
   const navigate = useNavigate();
+
+  // Local state to store resumes and potential error messages
   const [resumes, setResumes] = useState([]);
   const [error, setError] = useState('');
- console.log("authData", authData);
 
+  // On mount, redirect if no user is authenticated
   useEffect(() => {
     if (!authData?.user) {
       navigate('/login');
       return;
     }
 
+    // Fetch resumes for the current user
     const fetchResumes = async () => {
       try {
         const userResumes = await getUserResumes(authData.user.id);
@@ -32,13 +39,17 @@ const DashboardPage = () => {
     fetchResumes();
   }, [authData, navigate]);
 
+  // Logs out the user and redirects to login
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  // Navigation handlers for resume actions
   const handleEdit = (id) => navigate(`/resumes/${id}`);
   const handlePreview = (id) => navigate(`/preview/${id}`);
+
+  // Delete handler with confirmation prompt
   const handleDelete = async (id) => {
     if (window.confirm('Delete this resume?')) {
       await deleteResume(id);
@@ -47,8 +58,10 @@ const DashboardPage = () => {
   };
 
   return (
+    // Wrap the page in the DashboardLayout component
     <DashboardLayout>
       {(activeSection) => {
+        // Dashboard tab content
         if (activeSection === 'dashboard') {
           return (
             <>
@@ -83,6 +96,7 @@ const DashboardPage = () => {
           );
         }
 
+        // Create Resume tab content
         if (activeSection === 'create') {
           return (
             <div className="space-y-4">
@@ -98,21 +112,22 @@ const DashboardPage = () => {
           );
         }
 
+        // Profile tab content
         if (activeSection === 'profile') {
           return (
             <div className="space-y-4">
               <h2 className="text-2xl font-semibold">Profile Settings</h2>
               <p className="text-gray-600">User email: {authData?.user?.email}</p>
-              {/* Add more fields later */}
+              {/* Add more fields here later like change password, name, etc. */}
             </div>
           );
         }
 
+        // Fallback if unknown section
         return null;
       }}
     </DashboardLayout>
-);
-
+  );
 };
 
 export default DashboardPage;
