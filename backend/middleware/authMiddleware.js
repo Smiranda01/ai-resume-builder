@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 
 // Middleware to authenticate users using JWT
 const authMiddleware = (req, res, next) => {
+  
   // Read the Authorization header from the request
   const authHeader = req.headers.authorization;
 

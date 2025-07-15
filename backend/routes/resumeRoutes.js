@@ -28,5 +28,9 @@ router.put('/:id', authMiddleware, resumeController.updateResume);
 // Delete a specific resume
 router.delete('/:id', authMiddleware, resumeController.deleteResume);
 
+//GET /api/resumes/:id/download-docx
+router.get('/:id/download-docx', authMiddleware, resumeController.downloadDocx);
+
+
 // Export the router so it can be used in index.js
 module.exports = router;

@@ -5,6 +5,11 @@ const dotenv = require('dotenv');
 const db = require('./config/db'); // MySQL database connection config
 
 const app = express(); // Initialize Express app
+app.use((req, res, next) => {
+  console.log(`[📥] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 
 // Load environment variables from .env file
 dotenv.config();
@@ -19,10 +24,10 @@ app.use(cors({
 app.use(express.json());
 
 // Import and mount route handlers
-const authRoutes = require('./routes/authRoutes');         // User authentication (register, login, activate)
-const resumeRoutes = require('./routes/resumeRoutes');     // CRUD operations for resumes
-const templateRoutes = require('./routes/templateRoutes'); // CRUD operations and rendering for templates
-const feedbackRoutes = require('./routes/feedbackRoutes'); // AI-generated feedback and ATS score
+const authRoutes = require('./routes/authRoutes');         
+const resumeRoutes = require('./routes/resumeRoutes');     
+const templateRoutes = require('./routes/templateRoutes'); 
+const feedbackRoutes = require('./routes/feedbackRoutes'); 
 
 // Define base routes for each API section
 app.use('/api/auth', authRoutes);
@@ -30,7 +35,7 @@ app.use('/api/resumes', resumeRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/feedback', feedbackRoutes);
 
-// Basic health check route (used to confirm server is running)
+// Basic health check route 
 app.get('/', (req, res) => {
   res.send('Backend is running!');
 });

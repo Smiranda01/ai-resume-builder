@@ -1,10 +1,19 @@
 // src/pages/ResumePreviewPage.jsx
 
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getResumeById } from '../api/resumes';
 import { generateFeedback } from '../api/feedback';
+import { updateResume } from '../api/resumes';
 import { AuthContext } from '../context/AuthContext';
+import TemplateOne from '../templates/TemplateOne';
+import TemplateTwo from '../templates/TemplateTwo';
+import TemplateThree from '../templates/TemplateThree';
+import TemplateFour from '../templates/TemplateFour';
+import TemplateFive from '../templates/TemplateFive';
+import TemplateSix from '../templates/TemplateSix';
+import html2pdf from 'html2pdf.js';
+
 
 const ResumePreviewPage = () => {
   // Get resume ID from route
@@ -19,6 +28,7 @@ const ResumePreviewPage = () => {
   // State for resume data and possible errors
   const [resume, setResume] = useState(null);
   const [error, setError] = useState('');
+  const previewRef = useRef(null);
 
   // Fetch resume details on mount
   useEffect(() => {
@@ -54,6 +64,78 @@ const ResumePreviewPage = () => {
     }
   };
 
+  const handleDownloadPDF = () => {
+    const element = previewRef.current;
+
+    // Temporarily apply both classes for clean export
+    element.classList.add('print-pdf', 'no-frame');
+
+    const opt = {
+      margin: 0.4,
+      filename: `${resume.title}_resume.pdf`,
+      image: { type: 'png', quality: 1 }, // ✅ Use PNG for sharper edges and text
+      html2canvas: {
+        scale: 3,       // ✅ Higher scale = higher resolution
+        useCORS: true,  // If using web fonts or external assets
+        logging: false  // Disable for production
+      },
+      jsPDF: {
+        unit: 'in',
+        format: 'letter',
+        orientation: 'portrait'
+      }
+    };
+    console.log(element.classList);
+    html2pdf().set(opt).from(element).save().then(() => {
+      // Remove both classes after download
+      element.classList.remove('print-pdf', 'no-frame');
+    });
+  };
+
+  const handleTemplateChange = async (e) => {
+  const newTemplateId = parseInt(e.target.value);
+
+  try {
+    const updated = {
+      ...resume,
+      template_id: newTemplateId,
+      content: resume.content, // ensure content remains consistent
+      title: resume.title,     // backend requires title
+    };
+
+    await updateResume(resume.id, updated);
+    setResume((prev) => ({ ...prev, template_id: newTemplateId }));
+  } catch (err) {
+    alert('Failed to change template: ' + err.message);
+  }
+  };
+
+  const handleDownloadDOCX = () => {
+  const token = JSON.parse(localStorage.getItem("authData"))?.token;
+
+  fetch(`http://localhost:5000/api/resumes/${resume.id}/download-docx`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(res => res.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${resume.title}_resume.docx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(err => alert('Download failed: ' + err.message));
+
+      console.log()
+  };
+
+
+
   // Error or loading states
   if (error) return <p className="text-red-600 text-center">{error}</p>;
   if (!resume) return <p className="text-center">Loading resume...</p>;
@@ -61,82 +143,57 @@ const ResumePreviewPage = () => {
   const { content } = resume;
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      {/* AI enhancement trigger */}
-      <button
-        onClick={handleEnhance}
-        className="mb-6 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+  <div className="p-8 max-w-4xl mx-auto">
+    {/* AI enhancement trigger */}
+    <button
+      onClick={handleEnhance}
+      className="mb-6 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+    >
+      ✨ Enhance with AI
+    </button>
+    <button
+      onClick={handleDownloadPDF}
+      className="mb-6 ml-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+    >
+      Download as PDF
+    </button>
+    <button
+    onClick={handleDownloadDOCX}
+      className="mb-6 ml-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+    >
+      Download as DOCX
+    </button>
+
+    <div className="mb-6">
+      <label htmlFor="templateSelector" className="block text-sm font-medium text-gray-700 mb-1">
+        Choose a Template
+      </label>
+      <select
+        id="templateSelector"
+        value={resume.template_id}
+        onChange={handleTemplateChange}
+        className="border rounded p-2"
       >
-        ✨ Enhance with AI
-      </button>
-
-      {/* Resume content display */}
-      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 space-y-6 text-gray-800">
-        <header>
-          <h1 className="text-3xl font-bold text-purple-700">{content.name || 'No Name Provided'}</h1>
-          {content.title && <p className="text-lg text-gray-600">{content.title}</p>}
-          {content.email && <p className="text-sm text-gray-500 mt-1">{content.email}</p>}
-        </header>
-
-        {content.summary && (
-          <section>
-            <h2 className="text-xl font-semibold mb-1">Summary</h2>
-            <p className="text-gray-700">{content.summary}</p>
-          </section>
-        )}
-
-        {content.skills?.length > 0 && (
-          <section>
-            <h2 className="text-xl font-semibold mb-1">Skills</h2>
-            <ul className="list-disc list-inside text-gray-700">
-              {content.skills.map((skill, idx) => <li key={idx}>{skill}</li>)}
-            </ul>
-          </section>
-        )}
-
-        {content.experience?.length > 0 && (
-          <section>
-            <h2 className="text-xl font-semibold mb-1">Experience</h2>
-            {content.experience.map((exp, idx) => (
-              <div key={idx} className="mb-3">
-                <h3 className="font-bold text-md">{exp.role} at {exp.company}</h3>
-                <p className="text-sm text-gray-600">{exp.description}</p>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {content.education?.length > 0 && (
-          <section>
-            <h2 className="text-xl font-semibold mb-1">Education</h2>
-            {content.education.map((edu, idx) => (
-              <p key={idx} className="text-gray-700">
-                <strong>{edu.degree}</strong> – {edu.institution} ({edu.year})
-              </p>
-            ))}
-          </section>
-        )}
-
-        {content.projects?.length > 0 && (
-          <section>
-            <h2 className="text-xl font-semibold mb-1">Projects</h2>
-            {content.projects.map((proj, idx) => (
-              <div key={idx} className="mb-2">
-                <p><strong>{proj.name}</strong>: {proj.description}</p>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {content.languages?.length > 0 && (
-          <section>
-            <h2 className="text-xl font-semibold mb-1">Languages</h2>
-            <p>{content.languages.join(', ')}</p>
-          </section>
-        )}
-      </div>
+        <option value={1}>Modern Professional</option>
+        <option value={7}>Left Sidebar</option>
+        <option value={8}>Classic Elegance</option>
+        <option value={9}>Minimalist Grid</option>
+        <option value={10}>Creative Designer</option>
+        <option value={11}>Executive Impact</option>
+      </select>
     </div>
-  );
+
+
+    {/* Dynamic Resume Template Rendering */}
+    {resume.template_id === 1 && <TemplateOne content={content} previewRef={previewRef} />}
+    {resume.template_id === 7 && <TemplateTwo content={content} previewRef={previewRef} />}
+    {resume.template_id === 8 && <TemplateThree content={content} previewRef={previewRef} />}
+    {resume.template_id === 9 && <TemplateFour content={content} previewRef={previewRef} />}
+    {resume.template_id === 10 && <TemplateFive content={content} previewRef={previewRef} />}
+    {resume.template_id === 11 && <TemplateSix content={content} previewRef={previewRef} />}
+  </div>
+);
+
 };
 
 export default ResumePreviewPage;
