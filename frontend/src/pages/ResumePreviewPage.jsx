@@ -55,9 +55,10 @@ const ResumePreviewPage = () => {
       // Navigate to AI preview page with both original and enhanced content
       navigate(`/ai-preview/${resume.id}`, {
         state: {
-          aiContent: response.resume_json,
-          original: resume.content,
-        },
+        aiContent: response.resume_json,
+        original: resume.content,
+        template_id: resume.template_id
+      }
       });
     } catch (err) {
       alert('Failed to generate AI feedback: ' + err.message);
@@ -73,9 +74,9 @@ const ResumePreviewPage = () => {
     const opt = {
       margin: 0.4,
       filename: `${resume.title}_resume.pdf`,
-      image: { type: 'png', quality: 1 }, // ✅ Use PNG for sharper edges and text
+      image: { type: 'png', quality: 1 }, // Use PNG for sharper edges and text
       html2canvas: {
-        scale: 3,       // ✅ Higher scale = higher resolution
+        scale: 3,       // Higher scale = higher resolution
         useCORS: true,  // If using web fonts or external assets
         logging: false  // Disable for production
       },

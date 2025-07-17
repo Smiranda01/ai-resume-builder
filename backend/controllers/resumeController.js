@@ -1,5 +1,6 @@
 const resumeModel = require('../models/resumeModel.js');
 const htmlDocx = require('html-docx-js');
+const util = require('util'); 
 
 // Create a new resume for the authenticated user
 exports.createResume = (req, res) => {
@@ -111,7 +112,7 @@ exports.deleteResume = (req, res) => {
   });
 };
 
-const util = require('util'); // at the top of your controller
+
 
 exports.downloadDocx = async (req, res) => {
   try {
@@ -121,7 +122,7 @@ exports.downloadDocx = async (req, res) => {
     const resume = results[0];
     if (!resume) return res.status(404).json({ error: 'Resume not found' });
 
-    // Ensure ownership (optional security step)
+    // Ensure ownership 
     if (resume.user_id !== req.user.id) {
       return res.status(403).json({ error: 'Unauthorized access to resume' });
     }

@@ -3,89 +3,59 @@
 import React from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { updateResume } from '../api/resumes';
+import TemplateOne from '../templates/TemplateOne';
+import TemplateTwo from '../templates/TemplateTwo';
+import TemplateThree from '../templates/TemplateThree';
+import TemplateFour from '../templates/TemplateFour';
+import TemplateFive from '../templates/TemplateFive';
+import TemplateSix from '../templates/TemplateSix';
 
 const AIReviewPage = () => {
-  // Get resume ID from route params
   const { id } = useParams();
-
-  // Navigation and location hooks from React Router
   const navigate = useNavigate();
   const location = useLocation();
+  const { aiContent, original, template_id } = location.state || {};
 
-  // Destructure AI-generated and original resume content passed via route state
-  const { aiContent, original } = location.state || {};
-
-  // Show error message if page is accessed directly without state
   if (!aiContent || !original) {
     return <p className="text-center text-red-600">Missing AI feedback or original resume data.</p>;
   }
 
-  // Apply AI changes to the resume and update via API
   const handleApply = async () => {
     try {
       await updateResume(id, {
         title: aiContent.title || 'Untitled Resume',
         content: aiContent,
+        template_id: template_id,
       });
       alert('AI suggestions applied successfully!');
-      navigate('/dashboard'); // Redirect to dashboard after success
+      navigate('/dashboard');
     } catch (err) {
       alert('Failed to apply suggestions: ' + err.message);
     }
   };
 
-  // Discard changes and go back one page
   const handleDiscard = () => {
     navigate(-1);
   };
 
-  // Renders a formatted resume preview section from a content object
-  const renderSection = (content) => (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">{content.name}</h1>
-      <p><strong>Title:</strong> {content.title}</p>
-      <p><strong>Email:</strong> {content.email}</p>
-      <p><strong>Summary:</strong> {content.summary}</p>
-      <p><strong>Skills:</strong> {content.skills?.join(', ')}</p>
-
-      {content.experience?.length > 0 && (
-        <div>
-          <h2 className="font-semibold">Experience</h2>
-          {content.experience.map((exp, idx) => (
-            <div key={idx}>
-              <p><strong>{exp.role}</strong> at {exp.company}</p>
-              <p className="text-sm">{exp.description}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {content.education?.length > 0 && (
-        <div>
-          <h2 className="font-semibold">Education</h2>
-          {content.education.map((edu, idx) => (
-            <p key={idx}>{edu.degree} - {edu.institution} ({edu.year})</p>
-          ))}
-        </div>
-      )}
-
-      {content.projects?.length > 0 && (
-        <div>
-          <h2 className="font-semibold">Projects</h2>
-          {content.projects.map((proj, idx) => (
-            <p key={idx}><strong>{proj.name}</strong>: {proj.description}</p>
-          ))}
-        </div>
-      )}
-
-      {content.languages?.length > 0 && (
-        <div>
-          <h2 className="font-semibold">Languages</h2>
-          <p>{content.languages.join(', ')}</p>
-        </div>
-      )}
-    </div>
-  );
+  const renderTemplate = (content, ref) => {
+    switch (template_id) {
+      case 1:
+        return <TemplateOne content={content} previewRef={ref} />;
+      case 7:
+        return <TemplateTwo content={content} previewRef={ref} />;
+      case 8:
+        return <TemplateThree content={content} previewRef={ref} />;
+      case 9:
+        return <TemplateFour content={content} previewRef={ref} />;
+      case 10:
+        return <TemplateFive content={content} previewRef={ref} />;
+      case 11:
+        return <TemplateSix content={content} previewRef={ref} />;
+      default:
+        return <p className="text-gray-600">No template matched.</p>;
+    }
+  };
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -93,17 +63,16 @@ const AIReviewPage = () => {
         {/* Original resume column */}
         <div className="w-full lg:w-1/2 bg-white rounded shadow p-6">
           <h2 className="text-xl font-bold mb-4">Original Resume</h2>
-          {renderSection(original)}
+          {renderTemplate(original)}
         </div>
 
         {/* AI-enhanced resume column */}
         <div className="w-full lg:w-1/2 bg-white rounded shadow p-6">
           <h2 className="text-xl font-bold mb-4">AI-Enhanced Resume</h2>
-          {renderSection(aiContent)}
+          {renderTemplate(aiContent)}
         </div>
       </div>
 
-      {/* Action buttons */}
       <div className="mt-8 flex flex-wrap gap-4 justify-center">
         <button
           onClick={handleApply}

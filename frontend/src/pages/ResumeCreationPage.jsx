@@ -1,7 +1,7 @@
 // src/pages/ResumeCreationPage.jsx
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { createResume } from '../api/resumes';
 import ResumeForm from '../components/ResumeForm';
 
@@ -9,23 +9,24 @@ const ResumeCreationPage = () => {
   // Hook to navigate after successful creation
   const navigate = useNavigate();
 
+  // Get the template ID from the URL
+  const { templateId } = useParams();
+
   // State to store and show error messages
   const [error, setError] = useState('');
 
   // Handle form submission from ResumeForm
   const handleSubmit = async (formData) => {
     try {
-      // Create the resume by sending title, template ID, and content
       await createResume({
         title: formData.title,
-        template_id: 1, // Hardcoded for now — replace with dropdown later
+        template_id: Number(templateId) || 1, 
         content: JSON.stringify(formData),
       });
 
       // Redirect to dashboard on success
       navigate('/dashboard');
     } catch (err) {
-      // Show error message if API call fails
       setError(err.message || 'Failed to create resume');
     }
   };
