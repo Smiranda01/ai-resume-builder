@@ -176,11 +176,11 @@ const ResumePreviewPage = () => {
         className="border rounded p-2"
       >
         <option value={1}>Modern Professional</option>
-        <option value={7}>Left Sidebar</option>
-        <option value={8}>Classic Elegance</option>
-        <option value={9}>Minimalist Grid</option>
-        <option value={10}>Creative Designer</option>
-        <option value={11}>Executive Impact</option>
+        <option value={2}>Left Sidebar</option>
+        <option value={3}>Classic Elegance</option>
+        <option value={4}>Minimalist Grid</option>
+        <option value={5}>Creative Designer</option>
+        <option value={6}>Executive Impact</option>
       </select>
     </div>
 
