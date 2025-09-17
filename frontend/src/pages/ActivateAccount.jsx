@@ -15,7 +15,7 @@ const ActivateAccount = () => {
     const activate = async () => {
       try {
         // Send GET request to backend with activation token
-        const res = await axios.get(`https://resumebuilder.santiagocloudlab.com/api/auth/activate/${token}`);
+        await axios.get(`https://resumebuilder.santiagocloudlab.com/api/auth/activate/${token}`);
         setStatus('success'); // Mark as successful if no error
       } catch (error) {
         setStatus('error'); // Mark as error if the request fails
