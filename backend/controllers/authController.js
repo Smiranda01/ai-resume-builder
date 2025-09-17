@@ -80,19 +80,27 @@ exports.activateAccount = (req, res) => {
 
   // Verify token and extract user info
   jwt.verify(token, process.env.JWT_ACTIVATE_SECRET, (err, decoded) => {
-    if (err) return res.status(400).json({ message: 'Invalid or expired token' });
+  if (err) {
+    console.error(
+      'Activation verify failed:',
+      err.name,
+      err.message
+    );
+    const msg =
+      err.name === 'TokenExpiredError' ? 'Token expired' :
+      err.name === 'JsonWebTokenError' ? 'Invalid token' :
+      'Invalid or expired token';
+    return res.status(400).json({ message: msg });
+  }
 
-    const { email } = decoded;
-
-    // Mark user as verified in the database
-    const sql = 'UPDATE users SET verified = 1 WHERE email = ?';
-    db.query(sql, [email], (err, result) => {
-      if (err) return res.status(500).json({ message: 'Failed to activate account' });
-      if (result.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
-
-      res.status(200).json({ message: 'Account successfully activated!' });
-    });
+  const { email } = decoded;
+  const sql = 'UPDATE users SET verified = 1 WHERE email = ?';
+  db.query(sql, [email], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Failed to activate account' });
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json({ message: 'Account successfully activated!' });
   });
+});
 };
 
 // Authenticates the user and returns a JWT
