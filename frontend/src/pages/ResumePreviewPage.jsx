@@ -187,11 +187,11 @@ const ResumePreviewPage = () => {
 
     {/* Dynamic Resume Template Rendering */}
     {resume.template_id === 1 && <TemplateOne content={content} previewRef={previewRef} />}
-    {resume.template_id === 7 && <TemplateTwo content={content} previewRef={previewRef} />}
-    {resume.template_id === 8 && <TemplateThree content={content} previewRef={previewRef} />}
-    {resume.template_id === 9 && <TemplateFour content={content} previewRef={previewRef} />}
-    {resume.template_id === 10 && <TemplateFive content={content} previewRef={previewRef} />}
-    {resume.template_id === 11 && <TemplateSix content={content} previewRef={previewRef} />}
+    {resume.template_id === 2 && <TemplateTwo content={content} previewRef={previewRef} />}
+    {resume.template_id === 3 && <TemplateThree content={content} previewRef={previewRef} />}
+    {resume.template_id === 4 && <TemplateFour content={content} previewRef={previewRef} />}
+    {resume.template_id === 5 && <TemplateFive content={content} previewRef={previewRef} />}
+    {resume.template_id === 6 && <TemplateSix content={content} previewRef={previewRef} />}
   </div>
 );
 
