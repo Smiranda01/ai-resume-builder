@@ -17,14 +17,16 @@ app.set('trust proxy', 1);
 // Allow local dev and (optionally) your production URL via env var CLIENT_ORIGIN
 const allowedOrigins = [
   'http://localhost:5173',
-  process.env.CLIENT_ORIGIN, 
-  process.env.APP_DNS_NAME // e.g. https://yourapp.azurewebsites.net
-].filter(Boolean);
+  'https://resumebuilder.santiagocloudlab.com',
+  'https://santiago-airesumebuilder-wa01.azurewebsites.net',
+  'santiago-airesumebuilde-staging-ckc4dfbtb4apahba.australiaeast-01.azurewebsites.net'
+];
 
 app.use(cors({
   origin: allowedOrigins,
-  credentials: true,
+  credentials: false, 
 }));
+
 
 // ----- Body parsing -----
 app.use(express.json());
