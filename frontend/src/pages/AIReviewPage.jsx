@@ -42,15 +42,15 @@ const AIReviewPage = () => {
     switch (template_id) {
       case 1:
         return <TemplateOne content={content} previewRef={ref} />;
-      case 7:
+      case 2:
         return <TemplateTwo content={content} previewRef={ref} />;
-      case 8:
+      case 3:
         return <TemplateThree content={content} previewRef={ref} />;
-      case 9:
+      case 4:
         return <TemplateFour content={content} previewRef={ref} />;
-      case 10:
+      case 5:
         return <TemplateFive content={content} previewRef={ref} />;
-      case 11:
+      case 6:
         return <TemplateSix content={content} previewRef={ref} />;
       default:
         return <p className="text-gray-600">No template matched.</p>;
