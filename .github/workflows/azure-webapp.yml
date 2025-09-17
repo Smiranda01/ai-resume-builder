@@ -1,0 +1,61 @@
+name: Deploy to Azure Web App
+
+on:
+  push:
+    branches: [ backend ]   
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---------- Build React (Vite) ----------
+      - name: Setup Node for frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install & build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      # ---------- Copy dist -> backend/public ----------
+      - name: Prepare static assets for backend
+        run: |
+          rm -rf backend/public
+          mkdir -p backend/public
+          cp -r frontend/dist/* backend/public/
+
+      # ---------- Install backend deps ----------
+      - name: Setup Node for backend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend deps
+        working-directory: backend
+        run: npm ci --omit=dev
+
+      # ---------- Package ONLY the backend ----------
+      - name: Archive backend
+        run: |
+          cd backend
+          zip -r ../app.zip .
+
+      # ---------- Deploy ----------
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: santiago-airesumebuilder-wa01        
+          slot-name: production
+          package: app.zip
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
