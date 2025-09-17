@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
   // Logs in the user and stores token and user data
   const login = async ({ email, password }) => {
     try {
-      const res = await axios.post('https://resumebuilder.santiagocloudlab.com/auth/login', { email, password });
+      const res = await axios.post('https://resumebuilder.santiagocloudlab.com/api/auth/login', { email, password });
       const token = res.data.token;
       const user = res.data.user;
 
