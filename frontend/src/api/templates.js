@@ -1,5 +1,5 @@
 // Base URL for resume template API
-const BASE_URL = "http://localhost:5000/api/templates"; 
+const BASE_URL = "https://resumebuilder.santiagocloudlab.com/api/templates"; 
 
 // Fetches all available resume templates (public endpoint).
 export const getAllTemplates = async () => {

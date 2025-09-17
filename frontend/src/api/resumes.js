@@ -1,7 +1,7 @@
 // src/api/resumes.js
 
 // Base URL for all resume-related API endpoints
-const BASE_URL = "http://localhost:5000/api/resumes";
+const BASE_URL = "https://resumebuilder.santiagocloudlab.com/api/resumes";
 
 // Helper function to retrieve the user's JWT token from localStorage and build the auth headers
 const authHeaders = () => {

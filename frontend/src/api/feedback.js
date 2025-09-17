@@ -1,7 +1,7 @@
 // src/api/feedback.js
 
 // Base URL for feedback-related endpoints
-const BASE_URL = "http://localhost:5000/api/feedback";
+const BASE_URL = "https://resumebuilder.santiagocloudlab.com/api/feedback";
 
 // Helper function to attach authentication headers using token stored in localStorage
 const authHeaders = () => {

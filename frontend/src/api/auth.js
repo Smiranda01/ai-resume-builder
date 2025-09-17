@@ -1,5 +1,5 @@
 // Base URL for authentication-related API endpoints
-const BASE_URL = "http://localhost:5000/api/auth";
+const BASE_URL = "https://resumebuilder.santiagocloudlab.com/api/auth";
 
 // Function to register a new user
 export const register = async (name, email, password) => {
