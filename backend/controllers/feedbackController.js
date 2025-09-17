@@ -37,6 +37,7 @@ exports.generateFeedback = async (req, res) => {
     "name": "string",
     "title": "string",
     "summary": "string",
+    "email": "string",
     "experience": [{ "company": "...", "role": "...", "description": "..." }],
     "skills": ["..."],
     "education": [{ "institution": "...", "degree": "...", "year": "..." }],

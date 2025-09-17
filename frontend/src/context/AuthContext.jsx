@@ -42,10 +42,12 @@ export const AuthProvider = ({ children }) => {
       console.log("Logged in successfully:", authPayload);
       return true;
     } catch (err) {
-      console.error('Login failed:', err);
-      return false;
+      const backendMessage = err.response?.data?.message || 'Login failed';
+      console.error('Login failed:', backendMessage);
+      throw new Error(backendMessage);
     }
   };
+
 
   // Logs out the user by clearing stored token and state
   const logout = () => {

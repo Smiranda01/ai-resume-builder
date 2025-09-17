@@ -27,12 +27,13 @@ const LoginForm = ({ onSubmit }) => {
       // If login fails show a generic error
       if (!success) setError('Login failed');
     } catch (err) {
-      // If the error is about email not being verified, prompt user
-      if (err.message?.toLowerCase().includes('verify your email')) {
+      const message = err.response?.data?.message || err.message || 'Login failed';
+      console.log('🪵 Login error:', message);
+
+      if (message.toLowerCase().includes('verify your email')) {
         setActivationError(true);
       } else {
-        // Otherwise show the error message from backend
-        setError(err.message || 'Login failed');
+        setError(message);
       }
     }
   };
