@@ -1,47 +1,60 @@
-// Import required modules
+// index.js
+
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const db = require('./config/db'); // MySQL database connection config
+const db = require('./config/db'); // your mysql2 pool
 
-const app = express(); // Initialize Express app
-app.use((req, res, next) => {
-  console.log(`[📥] ${req.method} ${req.originalUrl}`);
-  next();
-});
-
-
-// Load environment variables from .env file
 dotenv.config();
 
-// Enable Cross-Origin Resource Sharing (CORS) so frontend (localhost:5173) can communicate with backend
+const app = express();
+
+// If you use cookies or proxies later, this helps behind Azure's LB
+app.set('trust proxy', 1);
+
+// ----- CORS -----
+// Allow local dev and (optionally) your production URL via env var CLIENT_ORIGIN
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.CLIENT_ORIGIN,           // e.g. https://yourapp.azurewebsites.net
+].filter(Boolean);
+
 app.use(cors({
-  origin: 'http://localhost:5173', // React frontend origin
-  credentials: true,              // Allow cookies/auth headers
+  origin: allowedOrigins,
+  credentials: true,
 }));
 
-// Parse incoming JSON request bodies
+// ----- Body parsing -----
 app.use(express.json());
 
-// Import and mount route handlers
-const authRoutes = require('./routes/authRoutes');         
-const resumeRoutes = require('./routes/resumeRoutes');     
-const templateRoutes = require('./routes/templateRoutes'); 
-const feedbackRoutes = require('./routes/feedbackRoutes'); 
+// ----- Routes -----
+const authRoutes = require('./routes/authRoutes');
+const resumeRoutes = require('./routes/resumeRoutes');
+const templateRoutes = require('./routes/templateRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
 
-// Define base routes for each API section
 app.use('/api/auth', authRoutes);
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/feedback', feedbackRoutes);
 
-// Basic health check route 
-app.get('/', (req, res) => {
-  res.send('Backend is running!');
-});
+// Health check (useful for debugging)
+app.get('/healthz', (req, res) => res.send('Backend is running!'));
 
-// Start the server on specified port (default to 5000)
-const PORT = process.env.PORT || 5000;
+// ----- Static hosting for the React app (production) -----
+if (process.env.NODE_ENV === 'production') {
+  // We will copy frontend/dist -> backend/public in CI
+  const staticDir = path.join(__dirname, 'public');
+  app.use(express.static(staticDir));
+
+  // SPA fallback (AFTER API routes)
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(staticDir, 'index.html'));
+  });
+}
+
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server listening on port ${PORT}`);
 });
