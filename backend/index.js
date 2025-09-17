@@ -17,7 +17,8 @@ app.set('trust proxy', 1);
 // Allow local dev and (optionally) your production URL via env var CLIENT_ORIGIN
 const allowedOrigins = [
   'http://localhost:5173',
-  process.env.CLIENT_ORIGIN,           // e.g. https://yourapp.azurewebsites.net
+  process.env.CLIENT_ORIGIN, 
+  process.env.APP_DNS_NAME // e.g. https://yourapp.azurewebsites.net
 ].filter(Boolean);
 
 app.use(cors({
