@@ -114,7 +114,7 @@ const ResumePreviewPage = () => {
   const handleDownloadDOCX = () => {
   const token = JSON.parse(localStorage.getItem("authData"))?.token;
 
-  fetch(`http://localhost:5000/api/resumes/${resume.id}/download-docx`, {
+  fetch(`https://resumebuilder.santiagocloudlab.com/api/resumes/${resume.id}/download-docx`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
